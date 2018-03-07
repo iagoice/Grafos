@@ -1,9 +1,12 @@
 
+import java.util.Scanner;
 public class TP02 {
-
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+		Scanner in = new Scanner (System.in);
+		String line = "";
+		String [] lineParsed = null;
+		
+		
 	}
 
 }

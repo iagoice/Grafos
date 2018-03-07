@@ -2,7 +2,7 @@ import java.util.Scanner;
 
 public class TP01{
 	public static void main (String [] args) {
-		Scanner in = new Scanner (System.in);
+		/*Scanner in = new Scanner (System.in);
 		String line = "";
 		String [] lineParsed = null;
 		int directed, size, vertice;
@@ -50,6 +50,6 @@ public class TP01{
 		complementary = graph.complementary();
 		complementary.showGraph();
 		
-		in.close();//close scanner
+		in.close();//close scanner*/
 	}//end main()
 }//end TP01
