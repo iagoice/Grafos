@@ -1,11 +1,32 @@
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 /*
  * To do: create the removeEdge and removeNode, not needed for this project
 */
+/**
+ * @author 927870
+ *
+ */
 public class Graph {
+	
+	/**
+	 * List of nodes.
+	 */
 	public ArrayList<Node> nodes;
+	/**
+	 * Edges matrix.
+	 */
 	public int [][] edges;
+	
+	/**
+	 * If the graph is directed or not.
+	 */
 	public int isDirected;
+	
+	/**
+	 * Verifies if the  
+	 */
 	public int capacity;
 	public int size;
 	
@@ -17,6 +38,11 @@ public class Graph {
 		size = 3;
 	}
 	
+	
+	/** Instantiates a new graph defining its direction and number of nodes
+	 * @param directed if the graph is directed or not
+	 * @param sizeIn number of nodes
+	 */
 	public Graph (int directed, int sizeIn) {
 		edges = new int [sizeIn][sizeIn];
 		isDirected = directed;
@@ -25,9 +51,16 @@ public class Graph {
 		size = sizeIn;
 	}//end constructor
 	
-	public boolean isEdge( int index1, int index2 ) {
+	
+	/** Verifies if there is an edge between two nodes, given their position.
+	 * Note that the verification differs, depending on its isDirected property.
+	 * @param index1 index of first node
+	 * @param index2 index of second node
+	 * @return result of the verification, true if there is an edge, false if not.
+	 */
+	public boolean isEdge(int index1, int index2) {
 		boolean result = false;
-		if ( isDirected == 0 )
+		if (isDirected == 0)
 			result = ((edges[index1][index2] != 0 || edges[index2][index1] != 0)? true : false);
 		else if ( isDirected == 1 )
 			result = (edges[index1][index2] != 0 ? true : false);
@@ -35,10 +68,14 @@ public class Graph {
 		return result;
 	}//end isEdge()
 	
+	
+	/** Calculates the edge count of the graph.
+	 * @return the edge count.
+	 */
 	public int totalEdges() {
 		int n = nodes.size(), count = 0;
-		for ( int i = 0; i < n; i++ ) {
-			for ( int j = 0; j < n; j++ ) {
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
 				if (isDirected == 0) {
 					if (i < j && edges[i][j] != 0) {
 						count++;
@@ -53,11 +90,14 @@ public class Graph {
 		return count;
 	}//end totalEdges()
 	
+	/** If the graph is complete, there should be and edge connecting every node to every other node.
+	 * @return if the graph is complete or not.
+	 */
 	public boolean isComplete() {
 		boolean result = true;
 		int n = nodes.size();
-		for ( int i = 0; i < n; i++ ) {
-			for ( int j = 0; j < n; j++ ) {
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
 				if (edges[i][j] == 0) {
 					result = false;
 					break;
