@@ -1,12 +1,22 @@
+package Graph;
 import java.util.ArrayList;
 
 public class Node {
-	public int value;
+	public String name;
 	public int degree;
 	public ArrayList<Edge> edges;
+	private double latitude;
+	private double longitude;
 	
-	public Node (int valueIn) {
-		value = valueIn;
+	/*
+	 * Search parameters
+	 * */
+	
+	// Dijkstra
+	public boolean visited;
+	
+	public Node (String nameIn) {
+		name = nameIn;
 		edges = new ArrayList<Edge>();
 		degree = edges.size();
 	}
@@ -24,7 +34,7 @@ public class Node {
 	}//end removeEdge()
 	
 	public void showNode() {
-		System.out.println("Value: "+value);
+		System.out.println("Value: "+name);
 		System.out.println("Degree: "+degree);
 		int n = edges.size();
 		for(int i = 0; i < n; i++ ){
@@ -35,6 +45,14 @@ public class Node {
 	
 	//needs to be rearranged depending on the problem
 	public boolean equals(Node nodeIn) {
-		return (value == nodeIn.value ? true : false);
+		return (name == nodeIn.name ? true : false);
+	}
+	
+	public void visit() {
+		visited = true;
+	}
+	
+	public void unvisit() {
+		visited = false;
 	}
 }//end Node
