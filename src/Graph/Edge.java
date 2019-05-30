@@ -11,6 +11,10 @@ public class Edge implements Cloneable {
 		value = valueIn;
 	}//end constructor
 	
+	public Edge(double valueIn) {
+		value = valueIn;
+	}
+	
 	public void showEdge() {
 		System.out.println(from.name+"-"+to.name+":"+value);
 	}//end showEdge()

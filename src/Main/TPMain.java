@@ -1,7 +1,10 @@
 package Main;
-import javax.swing.JOptionPane;
+import java.util.ArrayList;
+import java.util.Random;
 
-import Graph.*;
+import Graph.Edge;
+import Graph.Graph;
+import Graph.Node;
 
 public class TPMain {
 
@@ -17,8 +20,8 @@ public class TPMain {
 			i++;
  		}
 		
-		String [] edges = {"GRU EZE 200", "EZE LAX 1000", "LAX GRU 900", "JAP LAX 200", "GRU JAP 500", "BRA JAP 5000", "EZE BRA 500"}; // simulating file, remove later
-		
+		String [] edges = {"GRU EZE 200", "EZE LAX 1000", "LAX GRU 900", "JAP LAX 200", "GRU JAP 500", "BRA JAP 5000", "EZE BRA 500", "LAX US 600"}; // simulating file, remove later
+//		String [] edges = generateRandomGraph(nodes);
 		for (int j = 0; j < edges.length; j++) {
 			String[] edgeInfo = edges[j].split(" ");
 			Node nodeFrom = graph.nodeNamed(edgeInfo[0]);
@@ -29,9 +32,27 @@ public class TPMain {
 			graph.addEdge(edge);
 		}
 		
+//		
+//		System.out.println(graph.shortestWayBetween("JAP", "US"));
+//		System.out.println(graph.cheapestWayBetween("JAP", "US"));
+//		System.out.println(graph.aroundTheWorldWithoutGoingBackToBeginning());
+		graph.prim();
+	}
+	
+	private static String[] generateRandomGraph(String[] nodes) {
+		Random random = new Random();
+		int numberOfEdges = random.nextInt((nodes.length*(nodes.length-1))/2);
 		
-		System.out.println(graph.shortestWayBetween("JAP", "US"));
-		System.out.println(graph.cheapestWayBetween("JAP", "US"));
+		String[] edges = new String[numberOfEdges];
+		for (int i = 0; i < numberOfEdges; i++) {
+			String fromEdge = nodes[random.nextInt(nodes.length)];
+			String toEdge = nodes[random.nextInt(nodes.length)];
+			int value = random.nextInt(5000);
+			
+			edges[i] = fromEdge + " " + toEdge + " " + value;
+		}
+		
+		return edges;
 	}
 
 }

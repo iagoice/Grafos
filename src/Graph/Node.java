@@ -1,7 +1,7 @@
 package Graph;
 import java.util.ArrayList;
 
-public class Node {
+public class Node implements Cloneable {
 	public String name;
 	public int degree;
 	public ArrayList<Edge> edges;
@@ -15,10 +15,22 @@ public class Node {
 	// Dijkstra
 	public boolean visited;
 	
+	//DFS
+	public int color;
+	
 	public Node (String nameIn) {
 		name = nameIn;
 		edges = new ArrayList<Edge>();
 		degree = edges.size();
+		color = 0;
+	}
+	
+	public Node clone(){  
+	    try{  
+	        return (Node) super.clone();  
+	    }catch(Exception e){ 
+	        return null; 
+	    }
 	}
 	
 	public void addEdge(Edge edgeIn) {
@@ -32,6 +44,35 @@ public class Node {
 			degree = edges.size();
 		}
 	}//end removeEdge()
+	
+	public Edge shortestEdgeNotVisited() {
+		Edge shortest = new Edge(Double.MAX_VALUE);
+		for (Edge edge: edges) {
+			if (edge.value < shortest.value &&
+				!edge.to.visited)
+				shortest = edge;
+		}
+		return shortest.value == Double.MAX_VALUE ? null : shortest;
+	}
+	
+	public Edge shortestEdge() {
+		Edge shortest = new Edge(Double.MAX_VALUE);
+		for (Edge edge: edges) {
+			if (edge.value < shortest.value)
+				shortest = edge;
+		}
+		return shortest.value == Double.MAX_VALUE ? null : shortest;
+	}
+	
+	public void removeEdgesExcept(Edge edgeToKeep) {
+		for(Edge edge: edges) {
+			if (edge.value != edgeToKeep.value &&
+				!edge.to.name.equals(edgeToKeep.to.name) &&
+				!edge.from.name.equals(edgeToKeep.from.name)) {
+				edges.remove(edge);
+			}
+		}
+	}
 	
 	public void showNode() {
 		System.out.println("Value: "+name);
@@ -54,5 +95,28 @@ public class Node {
 	
 	public void unvisit() {
 		visited = false;
+	}
+	
+	public void colorWhite() {
+		color = 0;
+	}
+	
+	public void colorGray() {
+		color = 1;
+	}
+	
+	public void colorBlack() {
+		color = 2;
+	}
+	
+	public boolean isWhite() {
+		return color == 0;
+	}
+	public boolean isGray() {
+		return color == 1;
+	}	
+	
+	public boolean isBlacke() {
+		return color == 2;
 	}
 }//end Node

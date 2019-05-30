@@ -1,5 +1,8 @@
 package Graph;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+
+import org.w3c.dom.NodeList;
 /*
  * To do: create the removeEdge and removeNode, not needed for this project
 */
@@ -33,7 +36,6 @@ public class Graph {
 		edgesList = new ArrayList<Edge>();
 		isDirected = false;
 		nodes = new ArrayList<Node>(DEFAULT_GRAPH_SIZE);
-		edgesList = new ArrayList<Edge>();
 	}
 	
 	
@@ -43,6 +45,7 @@ public class Graph {
 	 */
 	public Graph (boolean directed, int sizeIn) {
 		edgesGrid = new Edge [sizeIn][sizeIn];
+		edgesList = new ArrayList<Edge>();
 		isDirected = directed;
 		nodes = new ArrayList<Node>(DEFAULT_GRAPH_SIZE);
 	}//end constructor
@@ -91,6 +94,14 @@ public class Graph {
 		return result;
 	}//end isComplete()
 	
+	public boolean isConnected() {
+		DijkstraResult result = dijsktra(nodeAt(0).name);
+		for (String path: result.paths) {
+			if (path.isEmpty()) return false;
+		}
+		return true;
+	}
+	
 	//remove for tp 2, as you'll have to add multiple entries for the search, will also have to resize array everytime something gets added
 	public void addNode(Node node) {
 		nodes.add(node);
@@ -102,7 +113,7 @@ public class Graph {
 			
 		Edge edge = new Edge(from, to, value);
 		
-		
+		edgesGrid[index1][index2] = edge;
 	}//end addEdge()
 	
 	public boolean addEdge(Edge edge) {
@@ -161,7 +172,7 @@ public class Graph {
 	 * Search methods
 	 * */
 	
-	private void clearDijsktra() {
+	private void clearVisited() {
 		for (Node node: nodes) {
 			node.unvisit();
 		}
@@ -174,9 +185,117 @@ public class Graph {
 		return true;
 	}
 	
+	public Graph prim() {
+		Graph resultingGraph = new Graph(isDirected, nodes.size());
+		
+		ArrayList<Edge> currentTouchingEdges = new ArrayList<>();
+		
+		Node currentNode = nodeAt(0);
+		resultingGraph.addNode(currentNode);
+		
+		while (resultingGraph.nodes.size() < nodes.size()) {
+			currentNode.visit();
+			currentTouchingEdges.addAll(notVisitedEdges(currentNode.edges));
+			currentTouchingEdges = notVisitedEdges(currentTouchingEdges);
+			Edge shortestEdge = shortestEdge(currentTouchingEdges);
+			shortestEdge.to.visit();
+			Node nodeToAdd = shortestEdge.to.clone();
+			nodeToAdd.removeEdgesExcept(shortestEdge);;
+			resultingGraph.addNode(nodeToAdd);
+			currentNode = shortestEdge.to;
+			
+		}
+		return resultingGraph;
+	}
+	
+	private Edge shortestEdge(ArrayList<Edge> edges) {
+		Edge shortest = new Edge(Double.MAX_VALUE);
+		for(Edge edge: edges) {
+			if (edge.value < shortest.value &&
+				!edge.to.visited)
+				shortest = edge;
+		}
+		return shortest;
+	}
+	
+	private ArrayList<Edge> notVisitedEdges(ArrayList<Edge> edges) {
+		ArrayList<Edge> result = new ArrayList<Edge>();
+		for(Edge edge: edges) {
+			if (!edge.to.visited)
+				result.add(edge);
+		}
+		return result;
+	}
+	
+	public String aroundTheWorldWithoutGoingBackToBeginning() {
+		ArrayList<Node> oneDegreeNodes = oneDegreeNodes();
+		if (!isConnected() || oneDegreeNodes.size() > 1) // if the graph is not connected or there are more than 
+			return "It is not possible to travel around the world!";
+		
+		ArrayList<Double> listOfResults = new ArrayList<>();
+		if (oneDegreeNodes().size() == 0) {
+			for (Node node: nodes) {
+				listOfResults.add(aroundTheWorldWithoutGoingBackToBeginning(node.name));	 
+			}
+		} else {
+			listOfResults.add(aroundTheWorldWithoutGoingBackToBeginning(oneDegreeNodes.get(0).name));
+		}
+		double shortest = -1.0;
+		for (Double value: listOfResults) {
+			if (value > shortest) shortest = value;
+		}
+		return "The least amount of money you can spend to travel around the world is: " + shortest;
+	}
+	
+	private double aroundTheWorldWithoutGoingBackToBeginning(String from) {
+		clearVisited();
+		Node currentNode = nodeNamed(from);
+		Graph resultingGraph = new Graph(isDirected, nodes.size());
+		for (Node node: nodes) {
+			Node newNode = node.clone();
+			newNode.edges = new ArrayList<Edge>();
+			resultingGraph.addNode(newNode);
+		}
+		boolean failure = false;
+		int failureCount = 0;
+		
+		while(!areAllVisited()) {
+			currentNode.visit();
+			Edge shortestEdge = currentNode.shortestEdgeNotVisited();
+			if (shortestEdge == null) {
+				failureCount++;
+				failure = failureCount > 1; // if fails more than one time, it means the search failed
+				break;
+			}
+			resultingGraph.addEdge(shortestEdge);
+			currentNode = shortestEdge.to;
+		}
+		
+		double result = 0.0;
+		if (!failure) {
+			for (Edge edge: resultingGraph.edgesList) {
+				result += edge.value;
+			}
+		}
+		clearVisited();
+		
+		return result;
+	}
+	
+	private ArrayList<Node> oneDegreeNodes() {
+		ArrayList<Node> oneDegreeNodes = new ArrayList<>();
+		for (Node node: nodes) {
+			if (node.degree == 1) {
+				oneDegreeNodes.add(node);
+			}
+		}
+		
+		return oneDegreeNodes;
+	}
+	
 	// Dijsktra algorithm
 	public String shortestWayBetween(String fromName, String toName) {
-		DijkstraResult result = dijsktra(fromName, toName);
+		DijkstraResult result = dijsktra(fromName);
 		
 		String resultingPath = result.paths[indexOfNodeNamed(toName)]; 
 		if (resultingPath.isEmpty())
@@ -186,7 +305,7 @@ public class Graph {
 	}
 	
 	public String cheapestWayBetween(String fromName, String toName) {
-		DijkstraResult result = dijsktra(fromName, toName);
+		DijkstraResult result = dijsktra(fromName);
 		
 		double resultDistance = result.distances[indexOfNodeNamed(toName)];
 		if (resultDistance == Integer.MAX_VALUE)  
@@ -196,14 +315,12 @@ public class Graph {
 	}
 
 
-	private DijkstraResult dijsktra(String fromName, String toName) {
+	private DijkstraResult dijsktra(String fromName) {
 		
-		clearDijsktra();
+		clearVisited();
 		
 		Node from = nodeNamed(fromName);
 		int indexOfFrom = indexOfNodeNamed(fromName);
-		
-		Node to = nodeNamed(toName);
 		
 		String[] paths = new String[nodes.size()];
 		double[] distances = new double[nodes.size()];
@@ -231,7 +348,7 @@ public class Graph {
 			paths[indexOfToNode] = from.name + " " + edge.to.name;
 		}
 		
-		if (from == null || to == null) return new DijkstraResult(distances, paths);
+		if (from == null) return new DijkstraResult(distances, paths);
 		
 		while (!areAllVisited()) {
 			Node currentNode = nodes.get(shortestNotVisited(distances));
@@ -251,7 +368,7 @@ public class Graph {
 			}
 		}
 		
-		clearDijsktra();
+		clearVisited();
 		return new DijkstraResult(distances, paths);
 	}
 	
