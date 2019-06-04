@@ -198,10 +198,9 @@ public class Graph {
 			currentTouchingEdges.addAll(notVisitedEdges(currentNode.edges));
 			currentTouchingEdges = notVisitedEdges(currentTouchingEdges);
 			Edge shortestEdge = shortestEdge(currentTouchingEdges);
-			shortestEdge.to.visit();
 			Node nodeToAdd = shortestEdge.to.clone();
-			nodeToAdd.removeEdgesExcept(shortestEdge);;
 			resultingGraph.addNode(nodeToAdd);
+			resultingGraph.addEdge(shortestEdge);
 			currentNode = shortestEdge.to;
 			
 		}
@@ -229,7 +228,7 @@ public class Graph {
 	
 	public String aroundTheWorldWithoutGoingBackToBeginning() {
 		ArrayList<Node> oneDegreeNodes = oneDegreeNodes();
-		if (!isConnected() || oneDegreeNodes.size() > 1) // if the graph is not connected or there are more than 
+		if (!isConnected() || oneDegreeNodes.size() > 1) // if the graph is not connected or there are more than one 1 degree node
 			return "It is not possible to travel around the world!";
 		
 		ArrayList<Double> listOfResults = new ArrayList<>();
@@ -297,6 +296,8 @@ public class Graph {
 	public String shortestWayBetween(String fromName, String toName) {
 		DijkstraResult result = dijsktra(fromName);
 		
+		int index = indexOfNodeNamed(toName);
+		if (index < 0) return DIJKSTRA_ERROR_MESSAGE;
 		String resultingPath = result.paths[indexOfNodeNamed(toName)]; 
 		if (resultingPath.isEmpty())
 			return DIJKSTRA_ERROR_MESSAGE;
@@ -325,6 +326,7 @@ public class Graph {
 		String[] paths = new String[nodes.size()];
 		double[] distances = new double[nodes.size()];
 		
+		if (from == null) return new DijkstraResult(distances, paths);
 		// Initializations ------------------------------------------------------
 		// Visists origin node
 		from.visit();

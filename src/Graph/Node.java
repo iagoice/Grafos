@@ -5,8 +5,8 @@ public class Node implements Cloneable {
 	public String name;
 	public int degree;
 	public ArrayList<Edge> edges;
-	private double latitude;
-	private double longitude;
+	public double latitude;
+	public double longitude;
 	
 	/*
 	 * Search parameters
@@ -17,6 +17,15 @@ public class Node implements Cloneable {
 	
 	//DFS
 	public int color;
+	
+	public Node (String nameIn, double lat, double lon) {
+		latitude = lat;
+		longitude = lon;
+		name = nameIn;
+		edges = new ArrayList<Edge>();
+		degree = edges.size();
+		color = 0;
+	}
 	
 	public Node (String nameIn) {
 		name = nameIn;
@@ -65,13 +74,11 @@ public class Node implements Cloneable {
 	}
 	
 	public void removeEdgesExcept(Edge edgeToKeep) {
-		for(Edge edge: edges) {
-			if (edge.value != edgeToKeep.value &&
+			edges.removeIf( edge ->
+				edge.value != edgeToKeep.value &&
 				!edge.to.name.equals(edgeToKeep.to.name) &&
-				!edge.from.name.equals(edgeToKeep.from.name)) {
-				edges.remove(edge);
-			}
-		}
+				!edge.from.name.equals(edgeToKeep.from.name)
+			);
 	}
 	
 	public void showNode() {
