@@ -201,6 +201,7 @@ public class TPMain extends JFrame {
 			String edgesFileName = graphEdgesName.getText();
 			try {
 				graph = initializeGraph(nodesFileName, edgesFileName);
+				graph.defineAltitude();
 				tpMain.worldMap.repaint();
 				currentCheapestFare = null;
 				currentShortestPath = null;
@@ -255,12 +256,16 @@ public class TPMain extends JFrame {
 					
 					g.drawLine(fromX - 15, fromY - 15, toX - 15, toY - 15);
 					
-					g.drawString(String.format("%.2f", edge.value), 
-								(fromX > toX ? ((fromX - toX) / 2) + toX : ((toX -fromX) / 2) + fromX) - 10,
-								(fromY > toY ? ((fromY - toY) / 2) + toY : ((toY -fromY) / 2) + fromY) - 10);
-					g.drawString(String.format("%.3f", edge.distance), 
-							(fromX > toX ? ((fromX - toX) / 2) + toX : ((toX -fromX) / 2) + fromX) - 30,
-							(fromY > toY ? ((fromY - toY) / 2) + toY : ((toY -fromY) / 2) + fromY) - 30);
+					g.drawString("$: " + String.format("%.2f", edge.value), 
+								(fromX > toX ? ((fromX - toX) / 2) + toX : ((toX -fromX) / 2) + fromX) - 30,
+								(fromY > toY ? ((fromY - toY) / 2) + toY : ((toY -fromY) / 2) + fromY) - 30);
+					g.drawString("D: " + String.format("%.3f", edge.distance), 
+							(fromX > toX ? ((fromX - toX) / 2) + toX : ((toX -fromX) / 2) + fromX) - 20,
+							(fromY > toY ? ((fromY - toY) / 2) + toY : ((toY -fromY) / 2) + fromY) - 20);
+					
+					g.drawString("A: " + edge.altitude, 
+							(fromX > toX ? ((fromX - toX) / 2) + toX : ((toX -fromX) / 2) + fromX) - 10,
+							(fromY > toY ? ((fromY - toY) / 2) + toY : ((toY -fromY) / 2) + fromY) - 10);
 				}
 				
 				if(currentShortestPath != null) {

@@ -384,4 +384,17 @@ public class Graph {
 		}
 		return shortest;
 	}
+	
+	public void defineAltitude() {
+		int length = edgesList.size();
+		for(int i = 0; i < length; i++) {
+			for (int j = i + 1; j < length - 1; j++) {
+				Edge currentEdge = edgesList.get(i);
+				Edge edgeToCompare = edgesList.get(j);
+				if (currentEdge.cross(edgeToCompare)) {
+					edgeToCompare.altitude += 1000;
+				}
+			}
+		}
+	}
 }
