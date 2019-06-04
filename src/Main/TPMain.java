@@ -30,7 +30,6 @@ public class TPMain extends JFrame {
 	private static Graph graph;
 	
 	private GraphOverlay worldMap;
-	private JLabel worldMapLabel;
 	
 	private JTextField graphNodesName;
 	private JTextField graphEdgesName;
@@ -80,6 +79,8 @@ public class TPMain extends JFrame {
 		cheapestFareFrom = new JTextField(5);
 		cheapestFareTo = new JTextField(5);
 		cheapestFareButton = new JButton("Go");
+		CheapestFareAction cheapestFareAction = new CheapestFareAction(this);
+		cheapestFareButton.addActionListener(cheapestFareAction);
 		add(cheapestFare);
 		add(cheapestFareFrom);
 		add(cheapestFareTo);
@@ -107,7 +108,7 @@ public class TPMain extends JFrame {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if (tp.graph == null) return;
+			if (graph == null) return;
 			String from = tp.shortestPathFrom.getText();
 			String to = tp.shortestPathTo.getText();
 			String result = graph.shortestWayBetween(from, to);
@@ -115,6 +116,25 @@ public class TPMain extends JFrame {
 			JOptionPane.showMessageDialog(tp, result);
 		}
 		
+	}
+	
+	private class CheapestFareAction implements ActionListener {
+		
+		private TPMain tp;
+		
+		public CheapestFareAction(TPMain main) {
+			tp = main;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (graph == null) return;
+			String from = tp.cheapestFareFrom.getText();
+			String to = tp.cheapestFareTo.getText();
+			String result = graph.cheapestWayBetween(from, to);
+			
+			JOptionPane.showMessageDialog(tp, result);
+		}
 	}
 	
 	private class LoadGraphAction implements ActionListener {
@@ -140,7 +160,6 @@ public class TPMain extends JFrame {
 	private class GraphOverlay extends JPanel {
 		private BufferedImage image;
 		private String fileName = "worldmap.jpg";
-		private TPMain tp;
 		
 		public GraphOverlay(TPMain tpMain) {
 			try {
@@ -149,7 +168,6 @@ public class TPMain extends JFrame {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			tp = tpMain;
 		}
 		
 		@Override
@@ -160,35 +178,45 @@ public class TPMain extends JFrame {
 		@Override
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
+			
 			g.drawImage(image, 0, 0, null);
+			g.setColor(Color.black);
 			if (graph != null) {
 				for (Node node: graph.nodes) {
+					int actualX = getActualX(image.getWidth()/2, node.longitude);
+					int actualY = getActualY(image.getHeight()/2, node.latitude);
+					g.fillOval(actualX - 30, actualY - 30, 30, 30);
+					g.drawString(node.name, actualX - 30, actualY - 30);
+				}
+				
+				for(Edge edge: graph.edgesList) {
+					int fromX = getActualX(image.getWidth()/2, edge.from.longitude);
+					int fromY = getActualY(image.getHeight()/2, edge.from.latitude);
+					int toX = getActualX(image.getWidth()/2, edge.to.longitude);
+					int toY = getActualY(image.getHeight()/2, edge.to.latitude);
 					
+					g.drawLine(fromX - 15, fromY - 15, toX - 15, toY - 15);
+					
+					g.drawString("" + edge.value, 
+								(fromX > toX ? ((fromX - toX) / 2) + toX : ((toX -fromX) / 2) + fromX) - 10,
+								(fromY > toY ? ((fromY - toY) / 2) + toY : ((toY -fromY) / 2) + fromY) - 10);
+					g.drawString(String.format("%.3f", edge.distance), 
+							(fromX > toX ? ((fromX - toX) / 2) + toX : ((toX -fromX) / 2) + fromX) - 30,
+							(fromY > toY ? ((fromY - toY) / 2) + toY : ((toY -fromY) / 2) + fromY) - 30);
 				}
 			}
 		}
 		
-		private void drawGraph() {
-			
+		private int getActualX(double frameX, double coordinateX) {
+			int result = (int) frameX + (int) ((frameX * coordinateX) / 180) - (coordinateX < 0 ? 30 : 20);
+			return result;
 		}
 		
-		private BufferedImage process(BufferedImage old) {
-	        int w = old.getWidth() / 3;
-	        int h = old.getHeight() / 3;
-	        BufferedImage img = new BufferedImage(
-	            w, h, BufferedImage.TYPE_INT_ARGB);
-	        Graphics2D g2d = img.createGraphics();
-	        g2d.drawImage(old, 0, 0, w, h, this);
-	        g2d.setPaint(Color.yellow);
-	        g2d.setFont(new Font("Serif", Font.BOLD, 20));
-	        String s = "Hello, world!";
-	        FontMetrics fm = g2d.getFontMetrics();
-	        int x = img.getWidth() - fm.stringWidth(s) - 5;
-	        int y = fm.getHeight();
-	        g2d.drawString(s, x, y);
-	        g2d.dispose();
-	        return img;
-	    }
+		private int getActualY(double frameY, double coordinateY) {
+			int result = (int) frameY - (int) ((frameY * coordinateY) / 180) + (coordinateY < 0 ? 150 : 10);
+			return result;
+		}
+		
 	}
 
 	public static void main(String[] args) {
