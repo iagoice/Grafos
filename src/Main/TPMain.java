@@ -2,10 +2,7 @@ package Main;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -27,7 +24,12 @@ import Graph.Node;
 
 public class TPMain extends JFrame {
 	
+	private static final long serialVersionUID = 1L;
+
 	private static Graph graph;
+	
+	private String currentShortestPath;
+	private String currentCheapestFare;
 	
 	private GraphOverlay worldMap;
 	
@@ -88,6 +90,8 @@ public class TPMain extends JFrame {
 		
 		// Around the world
 		aroundTheWorldButton = new JButton("Around the world");
+		AroundTheWorldAction aroundTheWorldAction = new AroundTheWorldAction(this);
+		aroundTheWorldButton.addActionListener(aroundTheWorldAction);
 		add(aroundTheWorldButton);
 		
 		// World map
@@ -112,8 +116,9 @@ public class TPMain extends JFrame {
 			String from = tp.shortestPathFrom.getText();
 			String to = tp.shortestPathTo.getText();
 			String result = graph.shortestWayBetween(from, to);
-			
-			JOptionPane.showMessageDialog(tp, result);
+			currentShortestPath = result;
+			currentCheapestFare = null;
+			tp.worldMap.repaint();
 		}
 		
 	}
@@ -133,8 +138,29 @@ public class TPMain extends JFrame {
 			String to = tp.cheapestFareTo.getText();
 			String result = graph.cheapestWayBetween(from, to);
 			
+			currentCheapestFare = result;
+			currentShortestPath = null;
+			tp.worldMap.repaint();
+			String[] fares = currentCheapestFare.split(" ");
+			String cheapestFare = fares[fares.length - 1];
+			JOptionPane.showMessageDialog(tp, cheapestFare);
+		}
+	}
+	
+	private class AroundTheWorldAction implements ActionListener {
+		private TPMain tp;
+		
+		public AroundTheWorldAction(TPMain main) {
+			tp = main;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (graph == null) return;
+			String result = graph.aroundTheWorldWithoutGoingBackToBeginning();
 			JOptionPane.showMessageDialog(tp, result);
 		}
+		
 	}
 	
 	private class LoadGraphAction implements ActionListener {
@@ -151,6 +177,8 @@ public class TPMain extends JFrame {
 			try {
 				graph = initializeGraph(nodesFileName, edgesFileName);
 				tpMain.worldMap.repaint();
+				currentCheapestFare = null;
+				currentShortestPath = null;
 			} catch (Exception exception) {
 				JOptionPane.showMessageDialog(tpMain, "Erro ao carregar o grafo: " + exception.getLocalizedMessage());
 			}
@@ -158,6 +186,10 @@ public class TPMain extends JFrame {
 	}
 	
 	private class GraphOverlay extends JPanel {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		private BufferedImage image;
 		private String fileName = "worldmap.jpg";
 		
@@ -197,12 +229,42 @@ public class TPMain extends JFrame {
 					
 					g.drawLine(fromX - 15, fromY - 15, toX - 15, toY - 15);
 					
-					g.drawString("" + edge.value, 
+					g.drawString(String.format("%.2f", edge.value), 
 								(fromX > toX ? ((fromX - toX) / 2) + toX : ((toX -fromX) / 2) + fromX) - 10,
 								(fromY > toY ? ((fromY - toY) / 2) + toY : ((toY -fromY) / 2) + fromY) - 10);
 					g.drawString(String.format("%.3f", edge.distance), 
 							(fromX > toX ? ((fromX - toX) / 2) + toX : ((toX -fromX) / 2) + fromX) - 30,
 							(fromY > toY ? ((fromY - toY) / 2) + toY : ((toY -fromY) / 2) + fromY) - 30);
+				}
+				
+				if(currentShortestPath != null) {
+					g.setColor(Color.red);
+					String[] path = currentShortestPath.split(" ");
+					for (int i = 0; i < path.length - 1; i++) {
+						Node from = graph.nodeNamed(path[i]);
+						Node to = graph.nodeNamed(path[i + 1]);
+						
+						int fromX = getActualX(image.getWidth()/2, from.longitude);
+						int fromY = getActualY(image.getHeight()/2, from.latitude);
+						int toX = getActualX(image.getWidth()/2, to.longitude);
+						int toY = getActualY(image.getHeight()/2, to.latitude);
+						g.drawLine(fromX - 15, fromY - 15, toX - 15, toY - 15);
+					}
+				}
+				
+				if(currentCheapestFare != null) {
+					g.setColor(Color.red);
+					String[] path = currentCheapestFare.split(" ");
+					for (int i = 0; i < path.length - 2; i++) {
+						Node from = graph.nodeNamed(path[i]);
+						Node to = graph.nodeNamed(path[i + 1]);
+						
+						int fromX = getActualX(image.getWidth()/2, from.longitude);
+						int fromY = getActualY(image.getHeight()/2, from.latitude);
+						int toX = getActualX(image.getWidth()/2, to.longitude);
+						int toY = getActualY(image.getHeight()/2, to.latitude);
+						g.drawLine(fromX - 15, fromY - 15, toX - 15, toY - 15);
+					}
 				}
 			}
 		}

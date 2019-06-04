@@ -1,15 +1,6 @@
 package Graph;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
-import org.w3c.dom.NodeList;
-/*
- * To do: create the removeEdge and removeNode, not needed for this project
-*/
-/**
- * @author 927870
- *
- */
 public class Graph {
 	
 	private final int DEFAULT_GRAPH_SIZE = 3;
@@ -95,7 +86,7 @@ public class Graph {
 	}//end isComplete()
 	
 	public boolean isConnected() {
-		DijkstraResult result = dijsktra(nodeAt(0).name);
+		DijkstraResult result = dijsktra(nodeAt(0).name, false);
 		for (String path: result.paths) {
 			if (path.isEmpty()) return false;
 		}
@@ -294,11 +285,11 @@ public class Graph {
 	
 	// Dijsktra algorithm
 	public String shortestWayBetween(String fromName, String toName) {
-		DijkstraResult result = dijsktra(fromName);
+		DijkstraResult result = dijsktra(fromName, true);
 		
 		int index = indexOfNodeNamed(toName);
 		if (index < 0) return DIJKSTRA_ERROR_MESSAGE;
-		String resultingPath = result.paths[indexOfNodeNamed(toName)]; 
+		String resultingPath = result.paths[index]; 
 		if (resultingPath.isEmpty())
 			return DIJKSTRA_ERROR_MESSAGE;
 		else 
@@ -306,17 +297,20 @@ public class Graph {
 	}
 	
 	public String cheapestWayBetween(String fromName, String toName) {
-		DijkstraResult result = dijsktra(fromName);
+		DijkstraResult result = dijsktra(fromName, false);
 		
-		double resultDistance = result.distances[indexOfNodeNamed(toName)];
+		int index = indexOfNodeNamed(toName);
+		if (index < 0) return DIJKSTRA_ERROR_MESSAGE;
+		double resultDistance = result.distances[index];
+		String resultPath = result.paths[index];
 		if (resultDistance == Integer.MAX_VALUE)  
 			return DIJKSTRA_ERROR_MESSAGE;
 		else
-			return resultDistance + "";
+			return resultPath + " " + resultDistance;
 	}
 
 
-	private DijkstraResult dijsktra(String fromName) {
+	private DijkstraResult dijsktra(String fromName, boolean distance) {
 		
 		clearVisited();
 		
@@ -337,7 +331,7 @@ public class Graph {
 		}
 		// Sets all distances to max distance
 		for (int i = 0; i < distances.length; i++) {
-			distances[i] = Integer.MAX_VALUE;
+			distances[i] = Double.MAX_VALUE;
 		}
 		
 		// distance to self is zero
@@ -346,11 +340,9 @@ public class Graph {
 		// Sets the distance from the origin edge to its adjacent nodes
 		for(Edge edge: from.edges) {
 			int indexOfToNode = nodes.indexOf(edge.to);
-			distances[indexOfToNode] = edge.value;
+			distances[indexOfToNode] = distance ? edge.distance : edge.value;
 			paths[indexOfToNode] = from.name + " " + edge.to.name;
 		}
-		
-		if (from == null) return new DijkstraResult(distances, paths);
 		
 		while (!areAllVisited()) {
 			Node currentNode = nodes.get(shortestNotVisited(distances));
@@ -362,8 +354,8 @@ public class Graph {
 				Node neighbour = edge.to;
 				int indexOfNeighbour = nodes.indexOf(neighbour);
 				 if (!edge.to.visited) {
-					 if(distances[indexOfCurrentNode] + edge.value < distances[indexOfNeighbour]) {
-						 distances[indexOfNeighbour] = distances[indexOfCurrentNode] + edge.value;
+					 if(distances[indexOfCurrentNode] + (distance ? edge.distance : edge.value) < distances[indexOfNeighbour]) {
+						 distances[indexOfNeighbour] = distances[indexOfCurrentNode] + (distance ? edge.distance : edge.value);
 						 paths[indexOfNeighbour] = paths[indexOfCurrentNode] + " " + neighbour.name; 
 					 }
 				 }
