@@ -176,7 +176,11 @@ public class Graph {
 		return true;
 	}
 	
-	public Graph prim() {
+	public Graph minimalGeneratingTree() {
+		return prim();
+	}
+	
+	private Graph prim() {
 		Graph resultingGraph = new Graph(isDirected, nodes.size());
 		
 		ArrayList<Edge> currentTouchingEdges = new ArrayList<>();

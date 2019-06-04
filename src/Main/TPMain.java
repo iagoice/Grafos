@@ -30,6 +30,7 @@ public class TPMain extends JFrame {
 	
 	private String currentShortestPath;
 	private String currentCheapestFare;
+	private Graph currentGeneratingTree;
 	
 	private GraphOverlay worldMap;
 	
@@ -49,6 +50,8 @@ public class TPMain extends JFrame {
 	private JTextField cheapestFareTo;
 	
 	private JButton aroundTheWorldButton;
+	
+	private JButton minimalGeneratingTree;
 	
 	TPMain() {
 		setLayout(new FlowLayout());
@@ -94,6 +97,13 @@ public class TPMain extends JFrame {
 		aroundTheWorldButton.addActionListener(aroundTheWorldAction);
 		add(aroundTheWorldButton);
 		
+		// Minimal generating tree
+		minimalGeneratingTree = new JButton("Minimal Generating Tree");
+		MinimalGeneratingTreeAction minimalGeneratingTreeAction = new MinimalGeneratingTreeAction(this);
+		minimalGeneratingTree.addActionListener(minimalGeneratingTreeAction);
+		add(minimalGeneratingTree);
+		
+		
 		// World map
 //		worldMap = new ImageIcon(getClass().getResource("worldmap.jpg"));
 //		worldMapLabel = new JLabel(worldMap);
@@ -118,6 +128,7 @@ public class TPMain extends JFrame {
 			String result = graph.shortestWayBetween(from, to);
 			currentShortestPath = result;
 			currentCheapestFare = null;
+			currentGeneratingTree = null;
 			tp.worldMap.repaint();
 		}
 		
@@ -140,6 +151,7 @@ public class TPMain extends JFrame {
 			
 			currentCheapestFare = result;
 			currentShortestPath = null;
+			currentGeneratingTree = null;
 			tp.worldMap.repaint();
 			String[] fares = currentCheapestFare.split(" ");
 			String cheapestFare = fares[fares.length - 1];
@@ -160,7 +172,20 @@ public class TPMain extends JFrame {
 			String result = graph.aroundTheWorldWithoutGoingBackToBeginning();
 			JOptionPane.showMessageDialog(tp, result);
 		}
+	}
+	
+	private class MinimalGeneratingTreeAction implements ActionListener {
+		private TPMain tp;
 		
+		public MinimalGeneratingTreeAction(TPMain main) {
+			tp = main;
+		}
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (graph == null) return;
+			currentGeneratingTree = graph.minimalGeneratingTree();
+			tp.worldMap.repaint();
+		}
 	}
 	
 	private class LoadGraphAction implements ActionListener {
@@ -179,6 +204,7 @@ public class TPMain extends JFrame {
 				tpMain.worldMap.repaint();
 				currentCheapestFare = null;
 				currentShortestPath = null;
+				currentGeneratingTree = null;
 			} catch (Exception exception) {
 				JOptionPane.showMessageDialog(tpMain, "Erro ao carregar o grafo: " + exception.getLocalizedMessage());
 			}
@@ -258,6 +284,20 @@ public class TPMain extends JFrame {
 					for (int i = 0; i < path.length - 2; i++) {
 						Node from = graph.nodeNamed(path[i]);
 						Node to = graph.nodeNamed(path[i + 1]);
+						
+						int fromX = getActualX(image.getWidth()/2, from.longitude);
+						int fromY = getActualY(image.getHeight()/2, from.latitude);
+						int toX = getActualX(image.getWidth()/2, to.longitude);
+						int toY = getActualY(image.getHeight()/2, to.latitude);
+						g.drawLine(fromX - 15, fromY - 15, toX - 15, toY - 15);
+					}
+				}
+				
+				if (currentGeneratingTree != null) {
+					g.setColor(Color.red);
+					for (Edge edge: currentGeneratingTree.edgesList) {
+						Node from = edge.from;
+						Node to = edge.to;
 						
 						int fromX = getActualX(image.getWidth()/2, from.longitude);
 						int fromY = getActualY(image.getHeight()/2, from.latitude);
