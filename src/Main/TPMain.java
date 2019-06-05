@@ -6,8 +6,12 @@ import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
@@ -60,7 +64,7 @@ public class TPMain extends JFrame {
 		// Around the world
 		graphNodesName = new JTextField("nodes1.txt", 20);
 		graphEdgesName = new JTextField("edges1.txt", 20);
-		loadGraph = new JButton("Load graph");
+		loadGraph = new JButton("Carregar");
 		add(loadGraph);
 		add(graphNodesName);
 		add(graphEdgesName);
@@ -68,10 +72,10 @@ public class TPMain extends JFrame {
 		loadGraph.addActionListener(loadAction);
 		
 		// Shortest path
-		shortestPath = new JLabel("Shortest path");
+		shortestPath = new JLabel("Menor caminho");
 		shortestPathFrom = new JTextField(5);
 		shortestPathTo = new JTextField(5);
-		shortestPathButton = new JButton("Go");
+		shortestPathButton = new JButton("Ir");
 		ShortestPathAction shortestPathAction = new ShortestPathAction(this);
 		shortestPathButton.addActionListener(shortestPathAction);
 		add(shortestPath);
@@ -80,10 +84,10 @@ public class TPMain extends JFrame {
 		add(shortestPathButton);
 		
 		// Cheapest fare
-		cheapestFare = new JLabel("Cheapest fare");
+		cheapestFare = new JLabel("Menor tarifa");
 		cheapestFareFrom = new JTextField(5);
 		cheapestFareTo = new JTextField(5);
-		cheapestFareButton = new JButton("Go");
+		cheapestFareButton = new JButton("Ir");
 		CheapestFareAction cheapestFareAction = new CheapestFareAction(this);
 		cheapestFareButton.addActionListener(cheapestFareAction);
 		add(cheapestFare);
@@ -92,13 +96,13 @@ public class TPMain extends JFrame {
 		add(cheapestFareButton);
 		
 		// Around the world
-		aroundTheWorldButton = new JButton("Around the world");
+		aroundTheWorldButton = new JButton("Ao redor do mundo");
 		AroundTheWorldAction aroundTheWorldAction = new AroundTheWorldAction(this);
 		aroundTheWorldButton.addActionListener(aroundTheWorldAction);
 		add(aroundTheWorldButton);
 		
 		// Minimal generating tree
-		minimalGeneratingTree = new JButton("Minimal Generating Tree");
+		minimalGeneratingTree = new JButton("Árvore geradora mínima");
 		MinimalGeneratingTreeAction minimalGeneratingTreeAction = new MinimalGeneratingTreeAction(this);
 		minimalGeneratingTree.addActionListener(minimalGeneratingTreeAction);
 		add(minimalGeneratingTree);
@@ -125,7 +129,10 @@ public class TPMain extends JFrame {
 			if (graph == null) return;
 			String from = tp.shortestPathFrom.getText();
 			String to = tp.shortestPathTo.getText();
+			long startTime = System.nanoTime();
 			String result = graph.shortestWayBetween(from, to);
+			long endTime = System.nanoTime();
+			System.out.println("Tempo de execução em milisegundos: " + ((endTime - startTime)/100000.0));
 			currentShortestPath = result;
 			currentCheapestFare = null;
 			currentGeneratingTree = null;
@@ -147,7 +154,10 @@ public class TPMain extends JFrame {
 			if (graph == null) return;
 			String from = tp.cheapestFareFrom.getText();
 			String to = tp.cheapestFareTo.getText();
+			long startTime = System.nanoTime();
 			String result = graph.cheapestWayBetween(from, to);
+			long endTime = System.nanoTime();
+			System.out.println("Tempo de execução em milisegundos: " + ((endTime - startTime)/100000.0));
 			
 			currentCheapestFare = result;
 			currentShortestPath = null;
@@ -169,7 +179,10 @@ public class TPMain extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (graph == null) return;
+			long startTime = System.nanoTime();
 			String result = graph.aroundTheWorldWithoutGoingBackToBeginning();
+			long endTime = System.nanoTime();
+			System.out.println("Tempo de execução em milisegundos: " + ((endTime - startTime)/100000.0));
 			JOptionPane.showMessageDialog(tp, result);
 		}
 	}
@@ -183,7 +196,10 @@ public class TPMain extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (graph == null) return;
+			long startTime = System.nanoTime();
 			currentGeneratingTree = graph.minimalGeneratingTree();
+			long endTime = System.nanoTime();
+			System.out.println("Tempo de execução em milisegundos: " + ((endTime - startTime)/100000.0));
 			tp.worldMap.repaint();
 		}
 	}
@@ -199,6 +215,7 @@ public class TPMain extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			String nodesFileName = graphNodesName.getText();
 			String edgesFileName = graphEdgesName.getText();
+			generateCompleteGraph();
 			try {
 				graph = initializeGraph(nodesFileName, edgesFileName);
 				graph.defineAltitude();
@@ -208,6 +225,7 @@ public class TPMain extends JFrame {
 				currentGeneratingTree = null;
 			} catch (Exception exception) {
 				JOptionPane.showMessageDialog(tpMain, "Erro ao carregar o grafo: " + exception.getLocalizedMessage());
+				exception.printStackTrace();
 			}
 		}
 	}
@@ -367,6 +385,27 @@ public class TPMain extends JFrame {
 		edgesIn.close();
 		
 		return graph;
+	}
+	
+	private static void generateCompleteGraph() {
+		String[] nodes = {"AAA", "AAE", "BLQ", "BPS", "GOA", "IQQ", "POP", "MRU", "SJK", "VLN", "YBA", "WLG", "VNO", "SXM", "TRV"};
+		try {
+			File fout = new File("edges3.txt");
+			FileOutputStream fos = new FileOutputStream(fout);
+			
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
+			writer.write("" + ((15 * 14)/2));
+			writer.newLine();
+			for (int i = 0; i < nodes.length; i++) {
+				for (int j = i; j < nodes.length; j++) {
+					writer.write(nodes[i] + " " + nodes[j] + " " + ((i+j)*100));
+					writer.newLine();
+				}
+			}
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

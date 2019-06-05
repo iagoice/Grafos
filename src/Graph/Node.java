@@ -123,7 +123,7 @@ public class Node implements Cloneable {
 		return color == 1;
 	}	
 	
-	public boolean isBlacke() {
+	public boolean isBlack() {
 		return color == 2;
 	}
 }//end Node

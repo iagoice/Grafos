@@ -41,6 +41,14 @@ public class Graph {
 		nodes = new ArrayList<Node>(DEFAULT_GRAPH_SIZE);
 	}//end constructor
 	
+	@Override
+	protected Graph clone() {
+		try{  
+	        return (Graph) super.clone();  
+	    }catch(Exception e){ 
+	        return null; 
+	    }
+	}
 	
 	/** Verifies if there is an edge between two nodes, given their position.
 	 * Note that the verification differs, depending on its isDirected property.
@@ -176,7 +184,15 @@ public class Graph {
 		return true;
 	}
 	
+	private boolean areAllBlack() {
+		for (Node node: nodes) {
+			if (!node.isBlack()) return false;
+		}
+		return true;
+	}
+	
 	public Graph minimalGeneratingTree() {
+		clearVisited();
 		return prim();
 	}
 	
@@ -199,6 +215,7 @@ public class Graph {
 			currentNode = shortestEdge.to;
 			
 		}
+		clearVisited();
 		return resultingGraph;
 	}
 	
@@ -221,10 +238,38 @@ public class Graph {
 		return result;
 	}
 	
+	public String aroundTheWorld() {
+		clearVisited();
+		ArrayList<String> paths = new ArrayList<String>();
+		for (Node node: nodes) {
+			paths.add(aroundTheWorld(node, node, ""));
+			clearVisited();
+		}
+		String shortest = paths.get(0);
+		for (String path: paths) {
+			if (path.length() < shortest.length())
+				shortest = path;
+ 		}
+		return shortest;
+	}
+
+	public String aroundTheWorld(Node current, Node searched, String result) {
+		current.colorGray();
+		for(Edge edge: current.edges) {
+			if (edge.to.isWhite())
+				aroundTheWorld(edge.to, searched, result);
+		}
+		
+		if (current.name.equals(searched.name) && areAllBlack())
+			result += " " + current.name;
+		else 
+			current.colorBlack();
+		return result;
+	}
 	public String aroundTheWorldWithoutGoingBackToBeginning() {
 		ArrayList<Node> oneDegreeNodes = oneDegreeNodes();
 		if (!isConnected() || oneDegreeNodes.size() > 1) // if the graph is not connected or there are more than one 1 degree node
-			return "It is not possible to travel around the world!";
+			return "Não é possível viajar ao redor do mundo!";
 		
 		ArrayList<Double> listOfResults = new ArrayList<>();
 		if (oneDegreeNodes().size() == 0) {
@@ -238,7 +283,7 @@ public class Graph {
 		for (Double value: listOfResults) {
 			if (value > shortest) shortest = value;
 		}
-		return "The least amount of money you can spend to travel around the world is: " + shortest;
+		return "O menor preço para viajar ao redor do mundo é: " + shortest;
 	}
 	
 	private double aroundTheWorldWithoutGoingBackToBeginning(String from) {
@@ -386,6 +431,7 @@ public class Graph {
 	}
 	
 	public void defineAltitude() {
+		long startTime = System.nanoTime();
 		int length = edgesList.size();
 		for(int i = 0; i < length; i++) {
 			for (int j = i + 1; j < length - 1; j++) {
@@ -396,5 +442,25 @@ public class Graph {
 				}
 			}
 		}
+		long endTime = System.nanoTime();
+		System.out.println("Tempo de execução em milisegundos: " + ((endTime - startTime)/100000.0));
+	}
+	
+	private Graph reduce() {
+		Graph result = clone();
+		ArrayList<Node> nodesToRemove = new ArrayList<Node>();
+		for(Node node: nodes) {
+			for(Edge firstEdge: node.edges) {
+				Node secondNode = firstEdge.to;
+				for(Edge secondEdge: secondNode.edges) {
+					if(secondEdge.to.name.equals(node.name) && !secondEdge.to.visited){
+						nodesToRemove.add(secondEdge.to);
+						secondEdge.to.visit();
+					}
+				}
+			}
+		}
+		nodes.removeAll(nodesToRemove);
+		return result;
 	}
 }
